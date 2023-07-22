@@ -168,11 +168,9 @@ all sorts of different backend web frameworks and platforms. React just does
 the UI parts and is built to be modular and reusable.
 
 
-## Learning React
+## Building components
 
-### Building components
-
-#### Subsections
+### Subsections
 
 In this section we'll go over:
 
@@ -182,7 +180,7 @@ In this section we'll go over:
 * Passing input via props
 * Debugging React apps
 
-#### Creating a List Group Component
+### Creating a List Group Component
 
 We'll be using Bootstrap 5 for this application to give us some prebuilt CSS
 classes to work with.
@@ -255,7 +253,7 @@ function ListGroup() {
 export default ListGroup;
 ```
 
-#### Dealing With Fragments
+### Dealing With Fragments
 
 In React, one component can only return one element. For example, in our newly
 created ListGroup component we couldn't add a `<h1>heading</h1>` tag before the
@@ -293,7 +291,7 @@ function ListGroup() {
 export default ListGroup;
 ```
 
-#### Rendering Lists
+### Rendering Lists
 
 There is no for loop in React. Instead we use the builtin JS map function to
 turn the array of strings into an array of JSX li elements.
@@ -329,7 +327,7 @@ The above code uses the item.map() method to turn the array of locations into a
 unique list of items, each with its own unique key (browsers will complain if
 li's lack unique key).
 
-#### Conditional Rendering
+### Conditional Rendering
 
 We can use JavaScript's conditional statements to return different results for
 our components. For example, let say we want to display a different message
@@ -411,7 +409,7 @@ export default ListGroup;
 
 Much cleaner!
 
-#### Handling Events
+### Handling Events
 
 We can see an example of event handling below.
 
@@ -462,7 +460,7 @@ the import statement at the top does. Then we can stick the `handleClick` event
 handler function in our JSX block, so when an list item is clicked it passes
 the event back to our anonymous function.
 
-#### Managing State
+### Managing State
 
 We can manage the dynamic data associated with one of our component (aka that
 components "state") by using the `useState` react function. First we have to
@@ -535,7 +533,7 @@ On thing about react is every component has it own state. So if we insert a
 second ListGroup in our main `App.tsx` file the two different elements will
 have different, non-related state.
 
-#### Passing Data via Props
+### Passing Data via Props
 
 Lets say we want to display a list of colors or a list of fruits along with our
 list of places. But we'd like to reuse our existing ListGroup component. How
@@ -614,7 +612,7 @@ With the Props interfaces in place we're able to call our component with the
 items and heading specified. We can then pass that decomposed Prop into our
 ListGroup function and then use its values accordingly.
 
-#### Passing Functions via Props
+### Passing Functions via Props
 
 In JavaScript (and TypeScript) functions are first class citizens. This means
 they can be passed around and saved to variables and the function wont be
@@ -708,7 +706,7 @@ parameter line of the component function. Finally we can call our
 `onSelectItem()` function passing it the arg item which will get printed to
 stdout (aka console.log).
 
-#### State vs Props
+### State vs Props
 
 Props or properties are the inputs passed to a component.
 
@@ -729,7 +727,7 @@ certain component has data that can change over time.
 Changes to either state or props will result in changes to the virtual DOM
 causing a re-render.
 
-#### Passing Children
+### Passing Children
 
 What if we have elements in our root JSX code that we want to pass down to
 another component? Well react offers us a way to do this as well.
@@ -800,7 +798,434 @@ That works but what if we want to pass html down. Well in that case instead of
 type string we can declare the Props type to be `ReactNode`.
 
 
+## Styling Components
 
+### Subsections
+
+We'll look at a few ways to sytle our components in React using the following.
+
+* Vanilla CSS
+* CSS Modules
+* CSS-in-JS
+* Using CSS Libraries
+
+### Vanilla CSS
+
+CSS is hard. For years web developers have been using tools to make the process
+of using CSS better for a reason; because bare bones CSS sucks! Its next to
+impossible to build all of the UI elements for a modern web application from
+scratch using vanilla CSS.
+
+That being said, CSS is also unavoidable in web development and using a touch
+of custom CSS can really jazz things up a bit.
+
+To start with we'll remove the bootstrap import line from the `main.tsx` file.
+In the browser we can see all of our nice BS5 styling is gone.
+
+Then lets create a new file in our components dir called `ListGroup.css` and in
+our `ListGroup.tsx` file we'll import the css file. 
+
+* `styling-components/src/components/ListGroup.tsx`
+
+```
+import { useState } from "react";
+import './ListGroup.css'
+...
+```
+
+Then from there we can put any Vanilla CSS that we'd like into the
+`ListGroup.css` file to add custom styling for our component.
+
+### CSS Modules
+
+Vanilla CSS suffers from the problem of name collisions. With complicated sites
+pulling in multiple sheets globally scoped names can override eachother. That
+is if sheet A says all P tags are green and sheet B says they're all bold,
+they'll overlap with eachother causing confusion and bugs.
+
+This is the problem CSS modules try to solve. A CSS module is a file in which
+all class names are scoped locally, just like a JS module. That way we can use
+the same CSS names in different files without worrying about name clashes.
+
+The way we do this is by renaming our css file to contain .module.css
+
+* `src/components/ListGroup.tsx`
+
+```
+import styles from './ListGroup.module.css'
+```
+
+As you can see, styles is imported as just a regular JS object. This object
+contains the CSS classes defined in our CSS file.
+
+We can then access those CSS classes in our JS.
+
+* `src/components/ListGroup.tsx`
+
+```ts
+function ListGroup({ items, heading, onSelectItem }: Props) {
+
+  // Hook function.
+  const [selectedIndex, setSelectedIndex] = useState(-1)
+
+  return (
+    <>
+      <h1>{heading}</h1>
+      {items.length === 0 && <p>No item found</p>}
+      <ul className={styles['list-group']}>
+        {items.map((item, index) =>
+          <li
+            className={
+              selectedIndex === index
+                ? 'list-group-item active'
+                : 'list-group-item'
+            }
+            key={item}
+            onClick={() => {
+              setSelectedIndex(index);
+              onSelectItem(item);
+            }}
+          >
+            {item}
+          </li>
+        )}
+      </ul>
+    </>
+  );
+}
+
+```
+
+We can see now we're using the className defined in our styles object for
+list-group. This removes any clashes because our bundler will automatically
+give each css class a uniq name behind the scenes.
+
+If we click inspect and then look at the class name for our ul element we'll
+see its completely random.
+
+`<ul class="_list-group_dvjk9_1">`
+
+### CSS-in-JS
+
+The idea behind CSS-in-JS is that we can write all the styles for a component
+next to its definition in a JS or TS file. This provides the following
+benifits.
+
+* Scoped Styles
+* All the CSS & JS/TS code is in one place
+* Easier to delete a component
+* Easier to style based on props/state
+
+There are libraries that implment these concepts including, Styled Component,
+Emotion, and Polish to name a few.
+
+We're going to briefly go over styled components.
+
+We can install this library with npm.
+
+```
+npm install @types/styled-components
+```
+
+Now in order to import the library we need to also install the types for it so
+TS knows what it is.
+
+```
+npm install @types/styled-components
+```
+
+Now we can import the library into our `ListGroup.tsx` file.
+
+```
+import styled from 'styled-components';
+```
+
+With styled-components we no longer use the `className` attribute to define our
+styles. Instead now we define the style right at the top of the `ListGroup.tsx`
+file.
+
+```ts
+import { useState } from "react";
+//import './ListGroup.css'
+//import styles from './ListGroup.module.css'
+import styled from 'styled-components';
+
+const List = styled.ul`
+  list-style: none;
+  padding: 0;
+`;
+
+const ListItem = styled.li`
+  padding: 15px 0;
+`;
+
+interface Props {
+  items: string[];
+  heading: string;
+  onSelectItem: (item: string) => void;
+}
+
+function ListGroup({ items, heading, onSelectItem }: Props) {
+
+  // Hook function.
+  const [selectedIndex, setSelectedIndex] = useState(-1)
+
+  return (
+    <>
+      <h1>{heading}</h1>
+      {items.length === 0 && <p>No item found</p>}
+      <List>
+        {items.map((item, index) =>
+          <ListItem
+            key={item}
+            onClick={() => {
+              setSelectedIndex(index);
+              onSelectItem(item);
+            }}
+          >
+            {item}
+          </ListItem>
+        )}
+      </List>
+    </>
+  );
+}
+
+export default ListGroup;
+```
+
+In the above we replace the ul and li tags with custom react components that
+has the defined styles applied to it. So in the JSX the ul and li tags become
+\<List\> and \<ListItem\>.
+
+One advantage of this CSS-in-JS/TS approach is that it allows for more
+centrally organized component styling. This means all of the CSS can be in the
+same file as the JS/TS. So if we ever go to delete a component, we can just
+delete the JSX file and we don't have to go searching around for dead CSS to
+trim.
+
+#### Seperation of Concerns
+
+Divide a program into distinct sections where each section handles a specific
+functionality, rather than having everything in one place.
+
+This helps ensure our programs are:
+
+* Modular
+* Easier to understand
+* Easier to maintain
+* Easier to modify
+
+If our programs are modular we can build and test these modules individually.
+
+In a module all the details are hidden behind a well defined interface. Think
+about a remote control. All of the things we're able to control are accessible
+through buttons laid out on the remote. 
+
+Some people say that CSS in JS violates the seperation of concerns because all
+of the pieces are in one file (style, markup, logic). However, in the scope of
+a large application it actually helps to have each component bundled up into
+its own package.
+
+### Inline Styles
+
+Its possible to use inline styling in JSX to apply styling tweaks. But just as
+with regular HTML, inline styling can be messy and make things confusing and so
+should probably be used as a last resort.
+
+```
+      <ul className="list-group" style={{ backgroundColor: 'yellow'}}>
+```
+
+The above is an example of inline styling.
+
+### Popular UI Libraries
+
+Nowadays there are many modern frameworks that exist to make UI building
+easier.
+
+* Bootstrap
+* Material UI
+* Tailwind CSS
+
+Each of these libraries could be the subject of its own course, but we'll touch
+on them breifly.
+
+Bootstrap - A bunch of useful components, simple to use.
+
+Material UI - Open source react component library that implments google's
+material design, which is the design language used in google products.
+
+Tailwind CSS - utility-first CSS framework for building class components.
+
+### Adding Icons
+
+There are bundles of icons out there for our UIs. We can install one for react
+with npm.
+
+```
+npm i react-icons@4.7.1
+```
+
+From there we can go to the website for React Icons and browse available icons.
+
+[React Icons](https://react-icons.github.io/react-icons/)
+
+Once we find the component we want we can import it into our app and use it
+just like any other react component.
+
+* `src/App.tsx`
+
+```ts
+import { BsFillCalendarFill } from 'react-icons/bs'
+
+function App () {
+
+  return (
+    <div>
+      <BsFillCalendarFill color="red" size="40"/>
+    </div>
+  );
+
+}
+
+export default App;
+```
+
+And as you can see the `BsFillCalendarFill` component has color and size
+attributes we can set on it.
+
+### Using CSS Modules
+
+* `src/App.tsx`
+
+```ts
+import Button from './components/Button';
+
+function App() {
+
+  return (
+    <div>
+      <Button
+        color='primary'
+      />
+    </div>
+    )
+}
+
+export default App;
+```
+
+* `src/components/Button.module.css`
+
+```css
+.btn {
+  padding: 8px 12px;
+  border-radius: 3px;
+  border: 0;
+}
+
+.btn-primary {
+  background-color: #0d6efd;
+  color: white;
+}
+```
+
+* `src/components/Button.tsx`
+
+```ts
+import styles from './Button.module.css';
+
+function Button({ color, onButtonClick }: Props) {
+  return (
+    <button
+      type="button"
+      className={[styles.btn, styles['btn-' + color]].join(' ')}
+      onClick={onButtonClick}
+    >
+      Do a Fart!
+    </button>
+  )
+}
+
+export default Button
+```
+
+As you can see from the above we can import styles from the `Button.module.css`
+file as an object. We can then apply the styling from the css module to our
+react component by setting the className attribute equal to the css class
+definitions in the css modules file.
+
+### Building a Like Compnent
+
+We can string together a bunch of the things we've learned so far to build a
+Like component. We'll select two heart icons from the react icons page one
+filled in the other just an outline. 
+
+* `src/App.tsx`
+
+```ts
+import Like from './components/Like';
+
+function App() {
+
+  return (
+    <div>
+      <Like onClick={() => console.log("clicked")} />
+    </div>
+  )
+}
+
+export default App;
+```
+
+* `src/components/Like.tsx`
+
+```
+import { useState } from "react";
+import { AiFillHeart, AiOutlineHeart } from 'react-icons/ai';
+
+interface Props {
+  onClick: () => void;
+}
+
+function Like ({ onClick }: Props) {
+  // useState hook
+  const [status, setStatus] = useState(true);
+
+  const toggle = () => {
+    // Inverts the status
+    setStatus(!status);
+    // Notifies component consumer of click.
+    onClick();
+  }
+
+  if (status)
+    return (
+      <div>
+        <AiFillHeart color="red" size="40" onClick={toggle} />
+      </div>
+    );
+
+  return <AiOutlineHeart size="40" onClick={toggle} />
+
+}
+
+export default Like;
+```
+
+We'll use the useState hook to create a status value and initialize it to true.
+We'll then write a toggle function to invert the status whenever. Then we can
+return the full heart colored red if status is true and just heart outline if
+status false.
+
+Good so far! We have a heart we can click that toggles back and forth the
+state.
+
+Now lets just setup a Prop to handle the onClick event and have that just
+console log clicked in the `App.tsx` file.  We'll pass that to our Like
+component function and then use it in the toggle function to run the handler
+function when the heart is clicked.
 
 
 
